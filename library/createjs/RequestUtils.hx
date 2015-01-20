@@ -8,16 +8,16 @@ extern class RequestUtils
 	/**
 	 * The Regular Expression used to test file URLS for an absolute path.
 	 */
-	static var ABSOLUTE_PATH : RegExp;
+	static var ABSOLUTE_PATH : Dynamic;
 	/**
 	 * The Regular Expression used to test file URLS for a relative path.
 	 */
-	static var RELATIVE_PATH : RegExp;
+	static var RELATIVE_PATH : Dynamic;
 	/**
 	 * The Regular Expression used to test file URLS for an extension. Note that URIs must already have the query string
 	 * removed.
 	 */
-	static var EXTENSION_PATT : RegExp;
+	static var EXTENSION_PATT : Dynamic;
 
 	/**
 	 * Parse a file path to determine the information we need to work with it. Currently, PreloadJS needs to know:
