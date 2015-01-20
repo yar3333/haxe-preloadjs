@@ -8,7 +8,7 @@ package createjs;
  * set the {{#crossLink "LoadItem"}}{{/crossLink}} {{#crossLink "LoadItem/type:property"}}{{/crossLink}} property
  * to {{#crossLink "AbstractLoader/MANIFEST:property"}}{{/crossLink}}.
  */
-extern class ManifestLoader
+extern class ManifestLoader extends AbstractLoader
 {
 	function new(loadItem:Dynamic) : Void;
 

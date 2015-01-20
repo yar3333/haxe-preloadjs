@@ -6,7 +6,7 @@ package createjs;
  * use {{#crossLink "ManifestLoader"}}{{/crossLink}}, and to load EaselJS SpriteSheets, use
  * {{#crossLink "SpriteSheetLoader"}}{{/crossLink}}.
  */
-extern class JSONPLoader
+extern class JSONPLoader extends AbstractLoader
 {
 	function new(loadItem:Dynamic) : Void;
 

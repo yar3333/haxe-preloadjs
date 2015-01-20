@@ -3,7 +3,7 @@ package createjs;
 /**
  * A loader for image files.
  */
-extern class ImageLoader
+extern class ImageLoader extends AbstractLoader
 {
 	function new(loadItem:Dynamic, preferXHR:Bool) : Void;
 

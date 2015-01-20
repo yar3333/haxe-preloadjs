@@ -3,7 +3,7 @@ package createjs;
 /**
  * A loader for video files.
  */
-extern class VideoLoader
+extern class VideoLoader extends AbstractLoader
 {
 	function new(loadItem:Dynamic, preferXHR:Bool) : Void;
 

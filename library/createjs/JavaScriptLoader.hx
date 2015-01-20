@@ -3,7 +3,7 @@ package createjs;
 /**
  * A loader for JavaScript files.
  */
-extern class JavaScriptLoader
+extern class JavaScriptLoader extends AbstractLoader
 {
 	function new(loadItem:Dynamic, preferXHR:Bool) : Void;
 

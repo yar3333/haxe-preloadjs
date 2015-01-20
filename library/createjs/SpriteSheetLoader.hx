@@ -8,7 +8,7 @@ package createjs;
  * set the {{#crossLink "LoadItem"}}{{/crossLink}} {{#crossLink "LoadItem/type:property"}}{{/crossLink}} property
  * to {{#crossLink "AbstractLoader/SPRITESHEET:property"}}{{/crossLink}}.
  */
-extern class SpriteSheetLoader
+extern class SpriteSheetLoader extends AbstractLoader
 {
 	function new(loadItem:Dynamic) : Void;
 

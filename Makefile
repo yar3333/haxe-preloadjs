@@ -11,10 +11,9 @@ OPTIONS+= -ifile createjs/utils/BrowserDetect.js
 OPTIONS+= -ifile createjs/utils/definePropertySupported.js
 OPTIONS+= -ifile createjs/utils/proxy.js
 
-#OPTIONS+= --type-map RegExp-Dynamic
+OPTIONS+= --type-map XML-js.html.Document
 
 convert:
 	yuidoc -p -o out native/src
 	haxelib run yuidoc2haxe $(OPTIONS) library
 	rm -r out
-	haxelib run refactor process library *.hx postprocess.rules
