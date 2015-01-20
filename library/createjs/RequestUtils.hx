@@ -59,7 +59,7 @@ extern class RequestUtils
 	/**
 	 * Check if item is a valid HTMLVideoElement
 	 */
-	static function isVideoTag({Objectitem:Dynamic) : Bool;
+	static function isVideoTag(Objectitem:Dynamic) : Bool;
 	/**
 	 * Determine if a specific type is a text-based asset, and should be loaded as UTF-8.
 	 */

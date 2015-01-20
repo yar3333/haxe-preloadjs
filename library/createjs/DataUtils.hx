@@ -1,5 +1,4 @@
 package createjs;
-import js.html.Document;
 
 /**
  * A few data utilities for formatting different data types.

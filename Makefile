@@ -12,6 +12,10 @@ OPTIONS+= -ifile createjs/utils/definePropertySupported.js
 OPTIONS+= -ifile createjs/utils/proxy.js
 
 OPTIONS+= --type-map XML-js.html.Document
+OPTIONS+= --type-map RegExp-Dynamic
+
+OPTIONS+= --specify-type LoadQueue.registerLoader.The-AbstractLoader
+OPTIONS+= --specify-type LoadQueue.unregisterLoader.loader-AbstractLoader
 
 convert:
 	yuidoc -p -o out native/src
