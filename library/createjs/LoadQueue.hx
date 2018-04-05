@@ -207,7 +207,7 @@ extern class LoadQueue extends AbstractLoader
 	 * It is recommended that loaders extend {{#crossLink "AbstractLoader"}}{{/crossLink}}. Loaders can only be added
 	 * once, and will be prepended to the list of available loaders.
 	 */
-	function registerLoader(The:AbstractLoader) : Void;
+	function registerLoader(The:Class<AbstractLoader>) : Void;
 	/**
 	 * Remove a custom loader added usig {{#crossLink "registerLoader"}}{{/crossLink}}. Only custom loaders can be
 	 * unregistered, the default loaders will always be available.
