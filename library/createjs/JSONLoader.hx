@@ -5,6 +5,7 @@ package createjs;
  * instead. To load JSON-formatted manifests, use {{#crossLink "ManifestLoader"}}{{/crossLink}}, and to
  * load EaselJS SpriteSheets, use {{#crossLink "SpriteSheetLoader"}}{{/crossLink}}.
  */
+@:native('createjs.JSONLoader')
 extern class JSONLoader extends AbstractLoader
 {
 	function new(loadItem:Dynamic) : Void;

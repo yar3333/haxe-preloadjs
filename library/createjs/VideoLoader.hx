@@ -3,6 +3,7 @@ package createjs;
 /**
  * A loader for video files.
  */
+@:native('createjs.VideoLoader')
 extern class VideoLoader extends AbstractMediaLoader
 {
 	function new(loadItem:Dynamic, preferXHR:Bool) : Void;

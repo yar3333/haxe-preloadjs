@@ -50,6 +50,7 @@ package createjs;
  * The event model in CreateJS can be used separately from the suite in any project, however the inheritance model
  * requires modern browsers (IE9+).
  */
+@:native('createjs.EventDispatcher')
 extern class EventDispatcher
 {
 	function new() : Void;

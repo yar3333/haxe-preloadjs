@@ -3,6 +3,7 @@ package createjs;
 /**
  * A loader for Text files.
  */
+@:native('createjs.TextLoader')
 extern class TextLoader extends AbstractLoader
 {
 	function new(loadItem:Dynamic) : Void;

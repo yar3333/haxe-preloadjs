@@ -5,6 +5,7 @@ package createjs;
  * and {{#crossLink "MediaRequest"}}{{/crossLink}}. PreloadJS loaders will typically use a data loader under the
  * hood to get data.
  */
+@:native('createjs.AbstractRequest')
 extern class AbstractRequest
 {
 	function new(item:LoadItem) : Void;

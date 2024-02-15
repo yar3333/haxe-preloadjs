@@ -3,6 +3,7 @@ package createjs;
 /**
  * A loader for binary files. This is useful for loading web audio, or content that requires an ArrayBuffer.
  */
+@:native('createjs.BinaryLoader')
 extern class BinaryLoader extends AbstractLoader
 {
 	function new(loadItem:Dynamic) : Void;

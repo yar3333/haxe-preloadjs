@@ -3,6 +3,7 @@ package createjs;
 /**
  * A few data utilities for formatting different data types.
  */
+@:native('createjs.DataUtils')
 extern class DataUtils
 {
 	/**

@@ -37,6 +37,7 @@ package createjs;
  * Important note: Some browsers will prevent JSONP from firing the callback if the file was loaded as JSON, and not
  * JavaScript. You may have to have your server give you a JavaScript mime-type for this to work.
  */
+@:native('createjs.JSONPLoader')
 extern class JSONPLoader extends AbstractLoader
 {
 	function new(loadItem:Dynamic) : Void;

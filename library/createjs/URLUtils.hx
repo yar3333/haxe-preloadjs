@@ -3,6 +3,7 @@ package createjs;
 /**
  * Utilities that assist with parsing load items, and determining file types, etc.
  */
+@:native('createjs.URLUtils')
 extern class URLUtils
 {
 	/**

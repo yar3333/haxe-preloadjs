@@ -3,6 +3,7 @@ package createjs;
 /**
  * A loader for SVG files.
  */
+@:native('createjs.SVGLoader')
 extern class SVGLoader extends AbstractLoader
 {
 	function new(loadItem:Dynamic, preferXHR:Bool) : Void;

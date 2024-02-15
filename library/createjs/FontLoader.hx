@@ -7,6 +7,7 @@ package createjs;
  * Note that FontLoader does not support tag-based loading due to the requirement that CSS be read to determine the
  * font definitions to test for.
  */
+@:native('createjs.FontLoader')
 extern class FontLoader extends AbstractLoader
 {
 	/**

@@ -27,6 +27,7 @@ package createjs;
  * Additionally, some browsers require the server to serve a JavaScript mime-type for JSONP, so it may not work in
  * some conditions.
  */
+@:native('createjs.ManifestLoader')
 extern class ManifestLoader extends AbstractLoader
 {
 	function new(loadItem:Dynamic) : Void;

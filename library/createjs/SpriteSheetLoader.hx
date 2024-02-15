@@ -18,6 +18,7 @@ package createjs;
  * property on the SpriteSheet load item. This is because the JSON loaded will have a different format depending on
  * if it is loaded as JSON, so just changing `preferXHR` is not enough to change how it is loaded.
  */
+@:native('createjs.SpriteSheetLoader')
 extern class SpriteSheetLoader extends AbstractLoader
 {
 	function new(loadItem:Dynamic) : Void;

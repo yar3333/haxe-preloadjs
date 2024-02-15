@@ -3,6 +3,7 @@ package createjs;
 /**
  * A CreateJS {{#crossLink "Event"}}{{/crossLink}} that is dispatched when progress changes.
  */
+@:native('createjs.ProgressEvent')
 extern class ProgressEvent
 {
 	/**

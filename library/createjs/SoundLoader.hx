@@ -6,6 +6,7 @@ package createjs;
  * external framework that handles audio playback. To load content that can be played by WebAudio, use the
  * {{#crossLink "BinaryLoader"}}{{/crossLink}}, and handle the audio context decoding manually.
  */
+@:native('createjs.SoundLoader')
 extern class SoundLoader extends AbstractMediaLoader
 {
 	function new(loadItem:Dynamic, preferXHR:Bool) : Void;

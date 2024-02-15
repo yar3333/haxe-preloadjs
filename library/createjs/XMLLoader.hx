@@ -3,6 +3,7 @@ package createjs;
 /**
  * A loader for CSS files.
  */
+@:native('createjs.XMLLoader')
 extern class XMLLoader extends AbstractLoader
 {
 	function new(loadItem:Dynamic) : Void;

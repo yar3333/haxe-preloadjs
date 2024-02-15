@@ -3,6 +3,7 @@ package createjs;
 /**
  * Convenience methods for creating various elements used by PrelaodJS.
  */
+@:native('createjs.DomUtils')
 extern class DomUtils
 {
 	/**

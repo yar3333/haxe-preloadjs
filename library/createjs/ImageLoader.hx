@@ -3,6 +3,7 @@ package createjs;
 /**
  * A loader for image files.
  */
+@:native('createjs.ImageLoader')
 extern class ImageLoader extends AbstractLoader
 {
 	function new(loadItem:Dynamic, preferXHR:Bool) : Void;

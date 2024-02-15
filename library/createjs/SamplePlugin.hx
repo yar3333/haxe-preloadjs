@@ -38,6 +38,7 @@ package createjs;
  * for more information on how the callback works. For example, the SoundJS plugin allows PreloadJS to manage a
  * download that uses the Flash Player.
  */
+@:native('createjs.SamplePlugin')
 extern class SamplePlugin
 {
 	/**

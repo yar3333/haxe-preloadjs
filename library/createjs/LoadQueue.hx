@@ -161,6 +161,7 @@ typedef LoadQueueFilestartEvent =
  *     canceled, although no events will be dispatched.</li>
  * </ul>
  */
+@:native('createjs.LoadQueue')
 extern class LoadQueue extends AbstractLoader
 {
 	/**
