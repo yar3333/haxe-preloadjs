@@ -9,7 +9,7 @@ extern class JavaScriptLoader extends AbstractLoader
 
 	/**
 	 * Determines if the loader can load a specific item. This loader can only load items that are of type
-	 * {{#crossLink "AbstractLoader/JAVASCRIPT:property"}}{{/crossLink}}
+	 * {{#crossLink "Types/JAVASCRIPT:property"}}{{/crossLink}}
 	 */
 	static function canLoadItem(item:Dynamic) : Bool;
 }

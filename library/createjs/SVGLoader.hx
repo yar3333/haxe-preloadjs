@@ -9,7 +9,7 @@ extern class SVGLoader extends AbstractLoader
 
 	/**
 	 * Determines if the loader can load a specific item. This loader can only load items that are of type
-	 * {{#crossLink "AbstractLoader/SVG:property"}}{{/crossLink}}
+	 * {{#crossLink "Types/SVG:property"}}{{/crossLink}}
 	 */
 	static function canLoadItem(item:Dynamic) : Bool;
 }

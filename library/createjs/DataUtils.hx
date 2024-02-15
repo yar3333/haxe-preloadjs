@@ -8,7 +8,7 @@ extern class DataUtils
 	/**
 	 * Parse XML using the DOM. This is required when preloading XML or SVG.
 	 */
-	static function parseXML(text:String, type:String) : js.html.Document;
+	static function parseXML(text:String) : js.html.Document;
 	/**
 	 * Parse a string into an Object.
 	 */

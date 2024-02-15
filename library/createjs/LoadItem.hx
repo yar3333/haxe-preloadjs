@@ -10,13 +10,13 @@ extern class LoadItem
 {
 	/**
 	 * The source of the file that is being loaded. This property is <b>required</b>. The source can either be a
-	 * string (recommended), or an HTML tag.</li>
+	 * string (recommended), or an HTML tag.
+	 * This can also be an object, but in that case it has to include a type and be handled by a plugin.
 	 */
 	var src : String;
 	/**
-	 * The source of the file that is being loaded. This property is <strong>required</strong>. The source can
-	 * either be a string (recommended), or an HTML tag. See the {{#crossLink "AbstractLoader"}}{{/crossLink}}
-	 * class for the full list of supported types.
+	 * The type file that is being loaded. The type of the file is usually inferred by the extension, but can also
+	 * be set manually. This is helpful in cases where a file does not have an extension.
 	 */
 	var type : String;
 	/**
@@ -41,21 +41,21 @@ extern class LoadItem
 	 */
 	var data : Dynamic;
 	/**
-	 * The request method used for HTTP calls. Both {{#crossLink "AbstractLoader/GET:property"}}{{/crossLink}} or
-	 * {{#crossLink "AbstractLoader/POST:property"}}{{/crossLink}} request types are supported, and are defined as
+	 * The request method used for HTTP calls. Both {{#crossLink "Methods/GET:property"}}{{/crossLink}} or
+	 * {{#crossLink "Methods/POST:property"}}{{/crossLink}} request types are supported, and are defined as
 	 * constants on {{#crossLink "AbstractLoader"}}{{/crossLink}}.
 	 */
 	var method : String;
 	/**
 	 * An object hash of name/value pairs to send to the server.
 	 */
-	var values : Dynamic;
+	var values : Dynamic<String>;
 	/**
 	 * An object hash of headers to attach to an XHR request. PreloadJS will automatically attach some default
 	 * headers when required, including "Origin", "Content-Type", and "X-Requested-With". You may override the
 	 * default headers by including them in your headers object.
 	 */
-	var headers : Dynamic;
+	var headers : Dynamic<String>;
 	/**
 	 * Enable credentials for XHR requests.
 	 */
@@ -73,16 +73,21 @@ extern class LoadItem
 	 * The duration in milliseconds to wait before a request times out. This only applies to tag-based and and XHR
 	 * (level one) loading, as XHR (level 2) provides its own timeout event.
 	 */
-	var loadTimeout : Float;
+	var loadTimeout : Int;
+	/**
+	 * Default duration in milliseconds to wait before a request times out. This only applies to tag-based and and XHR
+	 * (level one) loading, as XHR (level 2) provides its own timeout event.
+	 */
+	static var LOAD_TIMEOUT_DEFAULT : Int;
 
 	function new() : Void;
 
 	/**
-	 * Create/validate a LoadItem.
+	 * Create a LoadItem.
 	 * <ul>
 	 *     <li>String-based items are converted to a LoadItem with a populated {{#crossLink "src:property"}}{{/crossLink}}.</li>
 	 *     <li>LoadItem instances are returned as-is</li>
-	 *     <li>Objectss are returned as-is</li>
+	 *     <li>Objects are returned with any needed properties added</li>
 	 * </ul>
 	 */
 	static function create(value:Dynamic) : Dynamic;

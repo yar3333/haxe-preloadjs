@@ -14,7 +14,7 @@ extern class XHRRequest extends AbstractLoader
 	/**
 	 * Look up the loaded result.
 	 */
-	override function getResult(?raw:Dynamic, ?rawResult:Bool) : Dynamic;
+	override function getResult(?raw:Bool) : Dynamic;
 	/**
 	 * Get all the response headers from the XmlHttpRequest.
 	 * 

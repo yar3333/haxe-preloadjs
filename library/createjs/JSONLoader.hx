@@ -11,7 +11,7 @@ extern class JSONLoader extends AbstractLoader
 
 	/**
 	 * Determines if the loader can load a specific item. This loader can only load items that are of type
-	 * {{#crossLink "AbstractLoader/JSON:property"}}{{/crossLink}}.
+	 * {{#crossLink "Types/JSON:property"}}{{/crossLink}}.
 	 */
 	static function canLoadItem(item:Dynamic) : Bool;
 }

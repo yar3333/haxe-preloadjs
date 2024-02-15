@@ -11,7 +11,7 @@ typedef LoadQueueFileloadEvent =
 
 typedef LoadQueueFilestartEvent =
 {
-	var The : Dynamic;
+	var target : Dynamic;
 	var type : String;
 	var item : Dynamic;
 }
@@ -70,32 +70,31 @@ typedef LoadQueueFilestartEvent =
  * either a non-standard file extension, or are serving the file using a proxy script, then you can pass in a
  * <code>type</code> property with any manifest item.
  * 
- *      queue.loadFile({src:"path/to/myFile.mp3x", type:createjs.AbstractLoader.SOUND});
+ *      queue.loadFile({src:"path/to/myFile.mp3x", type:createjs.Types.SOUND});
  * 
  *      // Note that PreloadJS will not read a file extension from the query string
- *      queue.loadFile({src:"http://server.com/proxy?file=image.jpg", type:createjs.AbstractLoader.IMAGE});
+ *      queue.loadFile({src:"http://server.com/proxy?file=image.jpg", type:createjs.Types.IMAGE});
  * 
  * Supported types are defined on the {{#crossLink "AbstractLoader"}}{{/crossLink}} class, and include:
  * <ul>
- *     <li>{{#crossLink "AbstractLoader/BINARY:property"}}{{/crossLink}}: Raw binary data via XHR</li>
- *     <li>{{#crossLink "AbstractLoader/CSS:property"}}{{/crossLink}}: CSS files</li>
- *     <li>{{#crossLink "AbstractLoader/IMAGE:property"}}{{/crossLink}}: Common image formats</li>
- *     <li>{{#crossLink "AbstractLoader/JAVASCRIPT:property"}}{{/crossLink}}: JavaScript files</li>
- *     <li>{{#crossLink "AbstractLoader/JSON:property"}}{{/crossLink}}: JSON data</li>
- *     <li>{{#crossLink "AbstractLoader/JSONP:property"}}{{/crossLink}}: JSON files cross-domain</li>
- *     <li>{{#crossLink "AbstractLoader/MANIFEST:property"}}{{/crossLink}}: A list of files to load in JSON format, see
+ *     <li>{{#crossLink "Types/BINARY:property"}}{{/crossLink}}: Raw binary data via XHR</li>
+ *     <li>{{#crossLink "Types/CSS:property"}}{{/crossLink}}: CSS files</li>
+ *     <li>{{#crossLink "Types/IMAGE:property"}}{{/crossLink}}: Common image formats</li>
+ *     <li>{{#crossLink "Types/JAVASCRIPT:property"}}{{/crossLink}}: JavaScript files</li>
+ *     <li>{{#crossLink "Types/JSON:property"}}{{/crossLink}}: JSON data</li>
+ *     <li>{{#crossLink "Types/JSONP:property"}}{{/crossLink}}: JSON files cross-domain</li>
+ *     <li>{{#crossLink "Types/MANIFEST:property"}}{{/crossLink}}: A list of files to load in JSON format, see
  *     {{#crossLink "AbstractLoader/loadManifest"}}{{/crossLink}}</li>
- *     <li>{{#crossLink "AbstractLoader/SOUND:property"}}{{/crossLink}}: Audio file formats</li>
- *     <li>{{#crossLink "AbstractLoader/SPRITESHEET:property"}}{{/crossLink}}: JSON SpriteSheet definiteions. This
+ *     <li>{{#crossLink "Types/SOUND:property"}}{{/crossLink}}: Audio file formats</li>
+ *     <li>{{#crossLink "Types/SPRITESHEET:property"}}{{/crossLink}}: JSON SpriteSheet definitions. This
  *     will also load sub-images, and provide a {{#crossLink "SpriteSheet"}}{{/crossLink}} instance.</li>
- *     <li>{{#crossLink "AbstractLoader/SVG:property"}}{{/crossLink}}: SVG files</li>
- *     <li>{{#crossLink "AbstractLoader/TEXT:property"}}{{/crossLink}}: Text files - XHR only</li>
- *     <li>{{#crossLink "AbstractLoader/XML:property"}}{{/crossLink}}: XML data</li>
+ *     <li>{{#crossLink "Types/SVG:property"}}{{/crossLink}}: SVG files</li>
+ *     <li>{{#crossLink "Types/TEXT:property"}}{{/crossLink}}: Text files - XHR only</li>
+ *     <li>{{#crossLink "Types/VIDEO:property"}}{{/crossLink}}: Video objects</li>
+ *     <li>{{#crossLink "Types/XML:property"}}{{/crossLink}}: XML data</li>
  * </ul>
  * 
- * <em>Note: Loader types used to be defined on LoadQueue, but have been moved to AbstractLoader for better
- * portability of loader classes, which can be used individually now. The properties on LoadQueue still exist, but
- * are deprecated.</em>
+ * <em>Note: Loader types used to be defined on LoadQueue, but have been moved to the Types class</em>
  * 
  * <b>Handling Results</b><br />
  * When a file is finished downloading, a {{#crossLink "LoadQueue/fileload:event"}}{{/crossLink}} event is
@@ -112,6 +111,7 @@ typedef LoadQueueFilestartEvent =
  *     <li>SpriteSheet: A {{#crossLink "SpriteSheet"}}{{/crossLink}} instance, containing loaded images.
  *     <li>SVG: An &lt;object /&gt; tag</li>
  *     <li>Text: Raw text</li>
+ *     <li>Video: A Video DOM node</li>
  *     <li>XML: An XML DOM node</li>
  * </ul>
  * 
@@ -120,7 +120,7 @@ typedef LoadQueueFilestartEvent =
  *          var type = item.type;
  * 
  *          // Add any images to the page body.
- *          if (type == createjs.LoadQueue.IMAGE) {
+ *          if (type == createjs.Types.IMAGE) {
  *              document.body.appendChild(event.result);
  *          }
  *      }
@@ -164,9 +164,10 @@ typedef LoadQueueFilestartEvent =
 extern class LoadQueue extends AbstractLoader
 {
 	/**
-	 * Determines if the LoadQueue will stop processing the current queue when an error is encountered.
+	 * The next preload queue to process when this one is complete. If an error is thrown in the current queue, and
+	 * {{#crossLink "LoadQueue/stopOnError:property"}}{{/crossLink}} is `true`, the next queue will not be processed.
 	 */
-	var stopOnError : Bool;
+	var next : LoadQueue;
 	/**
 	 * Ensure loaded scripts "complete" in the order they are specified. Loaded scripts are added to the document head
 	 * once they are loaded. Scripts loaded via tags will load one-at-a-time when this property is `true`, whereas
@@ -195,10 +196,9 @@ extern class LoadQueue extends AbstractLoader
 	 */
 	var maintainScriptOrder : Bool;
 	/**
-	 * The next preload queue to process when this one is complete. If an error is thrown in the current queue, and
-	 * {{#crossLink "LoadQueue/stopOnError:property"}}{{/crossLink}} is `true`, the next queue will not be processed.
+	 * Determines if the LoadQueue will stop processing the current queue when an error is encountered.
 	 */
-	var next : LoadQueue;
+	var stopOnError : Bool;
 
 	function new(?preferXHR:Bool, ?basePath:String, ?crossOrigin:Dynamic) : Void;
 
@@ -209,7 +209,7 @@ extern class LoadQueue extends AbstractLoader
 	 */
 	function registerLoader(loader:Class<AbstractLoader>) : Void;
 	/**
-	 * Remove a custom loader added usig {{#crossLink "registerLoader"}}{{/crossLink}}. Only custom loaders can be
+	 * Remove a custom loader added using {{#crossLink "registerLoader"}}{{/crossLink}}. Only custom loaders can be
 	 * unregistered, the default loaders will always be available.
 	 */
 	function unregisterLoader(loader:Class<AbstractLoader>) : Void;
@@ -273,7 +273,7 @@ extern class LoadQueue extends AbstractLoader
 	 *      var queue = new createjs.LoadQueue();
 	 *      queue.setMaxConnections(10); // Allow 10 concurrent loads
 	 */
-	function setMaxConnections(value:Float) : Void;
+	function setMaxConnections(value:Int) : Void;
 	/**
 	 * Load a single file. To add multiple files at once, use the {{#crossLink "LoadQueue/loadManifest"}}{{/crossLink}}
 	 * method.

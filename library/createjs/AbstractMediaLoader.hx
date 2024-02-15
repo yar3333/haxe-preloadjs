@@ -6,5 +6,5 @@ package createjs;
  */
 extern class AbstractMediaLoader extends AbstractLoader
 {
-	function new(loadItem:Dynamic, preferXHR:Bool, type:String) : Void;
+	function new(loadItem:Dynamic, preferXHR:Bool, type:Types) : Void;
 }

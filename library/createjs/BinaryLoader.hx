@@ -9,7 +9,7 @@ extern class BinaryLoader extends AbstractLoader
 
 	/**
 	 * Determines if the loader can load a specific item. This loader can only load items that are of type
-	 * {{#crossLink "AbstractLoader/BINARY:property"}}{{/crossLink}}
+	 * {{#crossLink "Types/BINARY:property"}}{{/crossLink}}
 	 */
 	static function canLoadItem(item:Dynamic) : Bool;
 }

@@ -9,7 +9,7 @@ extern class XMLLoader extends AbstractLoader
 
 	/**
 	 * Determines if the loader can load a specific item. This loader can only load items that are of type
-	 * {{#crossLink "AbstractLoader/XML:property"}}{{/crossLink}}.
+	 * {{#crossLink "Types/XML:property"}}{{/crossLink}}.
 	 */
 	static function canLoadItem(item:Dynamic) : Bool;
 }
