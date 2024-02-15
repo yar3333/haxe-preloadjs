@@ -1,5 +1,6 @@
 package preloadjs.data;
 
+@:native('createjs.Methods')
 extern enum abstract Methods(String)
 {
 	/**

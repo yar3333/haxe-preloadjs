@@ -1,5 +1,6 @@
 package preloadjs.data;
 
+@:native('createjs.Types')
 extern enum abstract Types(String)
 {
 	/**
