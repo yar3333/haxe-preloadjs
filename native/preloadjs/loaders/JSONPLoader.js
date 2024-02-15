@@ -43,13 +43,46 @@ this.createjs = this.createjs || {};
 	 * without a callback use the {{#crossLink "JSONLoader"}}{{/crossLink}} instead. To load JSON-formatted manifests,
 	 * use {{#crossLink "ManifestLoader"}}{{/crossLink}}, and to load EaselJS SpriteSheets, use
 	 * {{#crossLink "SpriteSheetLoader"}}{{/crossLink}}.
+	 *
+	 * JSONP is a format that provides a solution for loading JSON files cross-domain <em>without</em> requiring CORS.
+	 * JSONP files are loaded as JavaScript, and the "callback" is executed once they are loaded. The callback in the
+	 * JSONP must match the callback passed to the loadItem.
+	 *
+	 * <h4>Example JSONP</h4>
+	 *
+	 * 		callbackName({
+	 * 			"name": "value",
+	 *	 		"num": 3,
+	 *			"obj": { "bool":true }
+	 * 		});
+	 *
+	 * <h4>Example</h4>
+	 *
+	 * 		var loadItem = {id:"json", type:"jsonp", src:"http://server.com/text.json", callback:"callbackName"}
+	 * 		var queue = new createjs.LoadQueue();
+	 * 		queue.on("complete", handleComplete);
+	 * 		queue.loadItem(loadItem);
+	 *
+	 * 		function handleComplete(event) }
+	 * 			var json = queue.getResult("json");
+	 * 			console.log(json.obj.bool); // true
+	 * 		}
+	 *
+	 * JSONP files loaded concurrently require a <em>unique</em> callback. To ensure JSONP files are loaded in order,
+	 * either use the {{#crossLink "LoadQueue/setMaxConnections"}}{{/crossLink}} method (set to 1), or set
+	 * {{#crossLink "LoadItem/maintainOrder:property"}}{{/crossLink}} on items with the same callback.
+	 *
+	 * Important note: Some browsers will prevent JSONP from firing the callback if the file was loaded as JSON, and not
+	 * JavaScript. You may have to have your server give you a JavaScript mime-type for this to work.
+	 *
 	 * @class JSONPLoader
 	 * @param {LoadItem|Object} loadItem
+	 * @extends AbstractLoader
 	 * @constructor
 	 */
 	function JSONPLoader(loadItem) {
-		this.AbstractLoader_constructor(loadItem, false, createjs.AbstractLoader.JSONP);
-		this.setTag(document.createElement("script"));
+		this.AbstractLoader_constructor(loadItem, false, createjs.Types.JSONP);
+		this.setTag(createjs.Elements.script());
 		this.getTag().type = "text/javascript";
 	};
 
@@ -60,14 +93,14 @@ this.createjs = this.createjs || {};
 	// static methods
 	/**
 	 * Determines if the loader can load a specific item. This loader can only load items that are of type
-	 * {{#crossLink "AbstractLoader/JSONP:property"}}{{/crossLink}}.
+	 * {{#crossLink "Types/JSONP:property"}}{{/crossLink}}.
 	 * @method canLoadItem
 	 * @param {LoadItem|Object} item The LoadItem that a LoadQueue is trying to load.
 	 * @returns {Boolean} Whether the loader can load the item.
 	 * @static
 	 */
 	s.canLoadItem = function (item) {
-		return item.type == createjs.AbstractLoader.JSONP || item._loadAsJSONP;
+		return item.type == createjs.Types.JSONP;
 	};
 
 	// public methods
@@ -76,6 +109,13 @@ this.createjs = this.createjs || {};
 		this._dispose();
 	};
 
+	/**
+	 * Loads the JSONp file.  Because of the unique loading needs of JSONp
+	 * we don't use the AbstractLoader.load() method.
+	 *
+	 * @method load
+	 *
+	 */
 	p.load = function () {
 		if (this._item.callback == null) {
 			throw new Error('callback is required for loading JSONP requests.');
@@ -93,7 +133,9 @@ this.createjs = this.createjs || {};
 		}
 
 		window[this._item.callback] = createjs.proxy(this._handleLoad, this);
-		window.document.body.appendChild(this._tag);
+		createjs.DomUtils.appendToBody(this._tag);
+
+		this._loadTimeout = setTimeout(createjs.proxy(this._handleTimeout, this), this._item.loadTimeout);
 
 		// Load the tag
 		this._tag.src = this._item.src;
@@ -101,9 +143,9 @@ this.createjs = this.createjs || {};
 
 	// private methods
 	/**
-	 * Handle the JSON callback, which is a public method defined on `window`.
+	 * Handle the JSONP callback, which is a public method defined on `window`.
 	 * @method _handleLoad
-	 * @param {Object} The formatted JSON data.
+	 * @param {Object} data The formatted JSON data.
 	 * @private
 	 */
 	p._handleLoad = function (data) {
@@ -112,15 +154,28 @@ this.createjs = this.createjs || {};
 
 		this._dispose();
 	};
-	
+
+	/**
+	 * The tag request has not loaded within the time specfied in loadTimeout.
+	 * @method _handleError
+	 * @param {Object} event The XHR error event.
+	 * @private
+	 */
+	p._handleTimeout = function () {
+		this._dispose();
+		this.dispatchEvent(new createjs.ErrorEvent("timeout"));
+	};
+
 	/**
 	 * Clean up the JSONP load. This clears out the callback and script tag that this loader creates.
 	 * @method _dispose
 	 * @private
 	 */
 	p._dispose = function () {
-		window.document.body.removeChild(this._tag);
+		createjs.DomUtils.removeChild(this._tag);
 		delete window[this._item.callback];
+
+		clearTimeout(this._loadTimeout);
 	};
 
 	createjs.JSONPLoader = createjs.promote(JSONPLoader, "AbstractLoader");

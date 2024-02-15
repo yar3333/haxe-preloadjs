@@ -42,10 +42,11 @@ this.createjs = this.createjs || {};
 	 * A loader for CSS files.
 	 * @class XMLLoader
 	 * @param {LoadItem|Object} loadItem
+	 * @extends AbstractLoader
 	 * @constructor
 	 */
 	function XMLLoader(loadItem) {
-		this.AbstractLoader_constructor(loadItem, true, createjs.AbstractLoader.XML);
+		this.AbstractLoader_constructor(loadItem, true, createjs.Types.XML);
 
 		// public properties
 		this.resultFormatter = this._formatResult;
@@ -57,14 +58,14 @@ this.createjs = this.createjs || {};
 	// static methods
 	/**
 	 * Determines if the loader can load a specific item. This loader can only load items that are of type
-	 * {{#crossLink "AbstractLoader/XML:property"}}{{/crossLink}}.
+	 * {{#crossLink "Types/XML:property"}}{{/crossLink}}.
 	 * @method canLoadItem
 	 * @param {LoadItem|Object} item The LoadItem that a LoadQueue is trying to load.
 	 * @returns {Boolean} Whether the loader can load the item.
 	 * @static
 	 */
 	s.canLoadItem = function (item) {
-		return item.type == createjs.AbstractLoader.XML;
+		return item.type == createjs.Types.XML;
 	};
 
 	// protected methods
@@ -76,7 +77,7 @@ this.createjs = this.createjs || {};
 	 * @private
 	 */
 	p._formatResult = function (loader) {
-		return createjs.DataUtils.parseXML(loader.getResult(true), "text/xml");
+		return createjs.DataUtils.parseXML(loader.getResult(true));
 	};
 
 	createjs.XMLLoader = createjs.promote(XMLLoader, "AbstractLoader");

@@ -44,10 +44,11 @@ this.createjs = this.createjs || {};
 	 * load EaselJS SpriteSheets, use {{#crossLink "SpriteSheetLoader"}}{{/crossLink}}.
 	 * @class JSONLoader
 	 * @param {LoadItem|Object} loadItem
+	 * @extends AbstractLoader
 	 * @constructor
 	 */
 	function JSONLoader(loadItem) {
-		this.AbstractLoader_constructor(loadItem, true, createjs.AbstractLoader.JSON);
+		this.AbstractLoader_constructor(loadItem, true, createjs.Types.JSON);
 
 		// public properties
 		this.resultFormatter = this._formatResult;
@@ -59,14 +60,14 @@ this.createjs = this.createjs || {};
 	// static methods
 	/**
 	 * Determines if the loader can load a specific item. This loader can only load items that are of type
-	 * {{#crossLink "AbstractLoader/JSON:property"}}{{/crossLink}}.
+	 * {{#crossLink "Types/JSON:property"}}{{/crossLink}}.
 	 * @method canLoadItem
 	 * @param {LoadItem|Object} item The LoadItem that a LoadQueue is trying to load.
 	 * @returns {Boolean} Whether the loader can load the item.
 	 * @static
 	 */
 	s.canLoadItem = function (item) {
-		return item.type == createjs.AbstractLoader.JSON && !item._loadAsJSONP;
+		return item.type == createjs.Types.JSON;
 	};
 
 	// protected methods

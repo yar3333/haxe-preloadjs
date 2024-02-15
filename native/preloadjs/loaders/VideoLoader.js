@@ -43,13 +43,14 @@ this.createjs = this.createjs || {};
 	 * @class VideoLoader
 	 * @param {LoadItem|Object} loadItem
 	 * @param {Boolean} preferXHR
+	 * @extends AbstractMediaLoader
 	 * @constructor
 	 */
 	function VideoLoader(loadItem, preferXHR) {
-		this.AbstractMediaLoader_constructor(loadItem, preferXHR, createjs.AbstractLoader.VIDEO);
+		this.AbstractMediaLoader_constructor(loadItem, preferXHR, createjs.Types.VIDEO);
 
-		if (createjs.RequestUtils.isVideoTag(loadItem) || createjs.RequestUtils.isVideoTag(loadItem.src)) {
-			this.setTag(createjs.RequestUtils.isVideoTag(loadItem)?loadItem:loadItem.src);
+		if (createjs.DomUtils.isVideoTag(loadItem) || createjs.DomUtils.isVideoTag(loadItem.src)) {
+			this.setTag(createjs.DomUtils.isVideoTag(loadItem)?loadItem:loadItem.src);
 
 			// We can't use XHR for a tag that's passed in.
 			this._preferXHR = false;
@@ -68,20 +69,20 @@ this.createjs = this.createjs || {};
 	 * @private
 	 */
 	p._createTag = function () {
-		return document.createElement("video");
+		return createjs.Elements.video();
 	};
 
 	// static methods
 	/**
 	 * Determines if the loader can load a specific item. This loader can only load items that are of type
-	 * {{#crossLink "AbstractLoader/VIDEO:property"}}{{/crossLink}}.
+	 * {{#crossLink "Types/VIDEO:property"}}{{/crossLink}}.
 	 * @method canLoadItem
 	 * @param {LoadItem|Object} item The LoadItem that a LoadQueue is trying to load.
 	 * @returns {Boolean} Whether the loader can load the item.
 	 * @static
 	 */
 	s.canLoadItem = function (item) {
-		return item.type == createjs.AbstractLoader.VIDEO;
+		return item.type == createjs.Types.VIDEO;
 	};
 
 	createjs.VideoLoader = createjs.promote(VideoLoader, "AbstractMediaLoader");

@@ -44,13 +44,24 @@ this.createjs = this.createjs || {};
 	 * as part of the {{#crossLink "LoadItem"}}{{/crossLink}}. Note that the {{#crossLink "JSONLoader"}}{{/crossLink}}
 	 * and {{#crossLink "JSONPLoader"}}{{/crossLink}} are higher priority loaders, so SpriteSheets <strong>must</strong>
 	 * set the {{#crossLink "LoadItem"}}{{/crossLink}} {{#crossLink "LoadItem/type:property"}}{{/crossLink}} property
-	 * to {{#crossLink "AbstractLoader/SPRITESHEET:property"}}{{/crossLink}}.
+	 * to {{#crossLink "Types/SPRITESHEET:property"}}{{/crossLink}}.
+	 *
+	 * The {{#crossLink "LoadItem"}}{{/crossLink}} {{#crossLink "LoadItem/crossOrigin:property"}}{{/crossLink}} as well
+	 * as the {{#crossLink "LoadQueue's"}}{{/crossLink}} `basePath` argument and {{#crossLink "LoadQueue/_preferXHR"}}{{/crossLink}}
+	 * property supplied to the {{#crossLink "LoadQueue"}}{{/crossLink}} are passed on to the sub-manifest that loads
+	 * the SpriteSheet images.
+	 *
+	 * Note that the SpriteSheet JSON does not respect the {{#crossLink "LoadQueue/_preferXHR:property"}}{{/crossLink}}
+	 * property, which should instead be determined by the presence of a {{#crossLink "LoadItem/callback:property"}}{{/crossLink}}
+	 * property on the SpriteSheet load item. This is because the JSON loaded will have a different format depending on
+	 * if it is loaded as JSON, so just changing `preferXHR` is not enough to change how it is loaded.
 	 * @class SpriteSheetLoader
 	 * @param {LoadItem|Object} loadItem
+	 * @extends AbstractLoader
 	 * @constructor
 	 */
-	function SpriteSheetLoader(loadItem) {
-		this.AbstractLoader_constructor(loadItem, null, createjs.AbstractLoader.SPRITESHEET);
+	function SpriteSheetLoader(loadItem, preferXHR) {
+		this.AbstractLoader_constructor(loadItem, preferXHR, createjs.Types.SPRITESHEET);
 
 		// protected properties
 		/**
@@ -79,26 +90,26 @@ this.createjs = this.createjs || {};
 	// static methods
 	/**
 	 * Determines if the loader can load a specific item. This loader can only load items that are of type
-	 * {{#crossLink "AbstractLoader/SPRITESHEET:property"}}{{/crossLink}}
+	 * {{#crossLink "Types/SPRITESHEET:property"}}{{/crossLink}}
 	 * @method canLoadItem
 	 * @param {LoadItem|Object} item The LoadItem that a LoadQueue is trying to load.
 	 * @returns {Boolean} Whether the loader can load the item.
 	 * @static
 	 */
 	s.canLoadItem = function (item) {
-		return item.type == createjs.AbstractLoader.SPRITESHEET;
+		return item.type == createjs.Types.SPRITESHEET;
 	};
 
 	// public methods
 	p.destroy = function() {
-		this.AbstractLoader_destroy;
+		this.AbstractLoader_destroy();
 		this._manifestQueue.close();
 	};
 
 	// protected methods
 	p._createRequest = function() {
-		var callback = this._item.callback
-		if (callback != null && callback instanceof Function) {
+		var callback = this._item.callback;
+		if (callback != null) {
 			this._request = new createjs.JSONPLoader(this._item);
 		} else {
 			this._request = new createjs.JSONLoader(this._item);
@@ -131,7 +142,7 @@ this.createjs = this.createjs || {};
 	 */
 	p._loadManifest = function (json) {
 		if (json && json.images) {
-			var queue = this._manifestQueue = new createjs.LoadQueue();
+			var queue = this._manifestQueue = new createjs.LoadQueue(this._preferXHR, this._item.path, this._item.crossOrigin);
 			queue.on("complete", this._handleManifestComplete, this, true);
 			queue.on("fileload", this._handleManifestFileLoad, this);
 			queue.on("progress", this._handleManifestProgress, this);

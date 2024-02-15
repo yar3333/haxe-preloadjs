@@ -72,7 +72,7 @@
  *      <li>Opera has poor support for SVG loading with XHR</li>
  *      <li>CSS loading in Android and Safari will not work with tags (currently, a workaround is in progress)</li>
  *      <li>Local loading is not permitted with XHR, which is required by some file formats. When testing local content
- *      use either a local server, or enable tag loading, which is supported for most formats. See {{#crossLink "LoadQueue/setUseXHR"}}{{/crossLink}}
+ *      use either a local server, or enable tag loading, which is supported for most formats. See {{#crossLink "LoadQueue/setPreferXHR"}}{{/crossLink}}
  *      for more information.</li>
  * </ul>
  *
@@ -160,32 +160,31 @@ this.createjs = this.createjs || {};
 	 * either a non-standard file extension, or are serving the file using a proxy script, then you can pass in a
 	 * <code>type</code> property with any manifest item.
 	 *
-	 *      queue.loadFile({src:"path/to/myFile.mp3x", type:createjs.AbstractLoader.SOUND});
+	 *      queue.loadFile({src:"path/to/myFile.mp3x", type:createjs.Types.SOUND});
 	 *
 	 *      // Note that PreloadJS will not read a file extension from the query string
-	 *      queue.loadFile({src:"http://server.com/proxy?file=image.jpg", type:createjs.AbstractLoader.IMAGE});
+	 *      queue.loadFile({src:"http://server.com/proxy?file=image.jpg", type:createjs.Types.IMAGE});
 	 *
 	 * Supported types are defined on the {{#crossLink "AbstractLoader"}}{{/crossLink}} class, and include:
 	 * <ul>
-	 *     <li>{{#crossLink "AbstractLoader/BINARY:property"}}{{/crossLink}}: Raw binary data via XHR</li>
-	 *     <li>{{#crossLink "AbstractLoader/CSS:property"}}{{/crossLink}}: CSS files</li>
-	 *     <li>{{#crossLink "AbstractLoader/IMAGE:property"}}{{/crossLink}}: Common image formats</li>
-	 *     <li>{{#crossLink "AbstractLoader/JAVASCRIPT:property"}}{{/crossLink}}: JavaScript files</li>
-	 *     <li>{{#crossLink "AbstractLoader/JSON:property"}}{{/crossLink}}: JSON data</li>
-	 *     <li>{{#crossLink "AbstractLoader/JSONP:property"}}{{/crossLink}}: JSON files cross-domain</li>
-	 *     <li>{{#crossLink "AbstractLoader/MANIFEST:property"}}{{/crossLink}}: A list of files to load in JSON format, see
+	 *     <li>{{#crossLink "Types/BINARY:property"}}{{/crossLink}}: Raw binary data via XHR</li>
+	 *     <li>{{#crossLink "Types/CSS:property"}}{{/crossLink}}: CSS files</li>
+	 *     <li>{{#crossLink "Types/IMAGE:property"}}{{/crossLink}}: Common image formats</li>
+	 *     <li>{{#crossLink "Types/JAVASCRIPT:property"}}{{/crossLink}}: JavaScript files</li>
+	 *     <li>{{#crossLink "Types/JSON:property"}}{{/crossLink}}: JSON data</li>
+	 *     <li>{{#crossLink "Types/JSONP:property"}}{{/crossLink}}: JSON files cross-domain</li>
+	 *     <li>{{#crossLink "Types/MANIFEST:property"}}{{/crossLink}}: A list of files to load in JSON format, see
 	 *     {{#crossLink "AbstractLoader/loadManifest"}}{{/crossLink}}</li>
-	 *     <li>{{#crossLink "AbstractLoader/SOUND:property"}}{{/crossLink}}: Audio file formats</li>
-	 *     <li>{{#crossLink "AbstractLoader/SPRITESHEET:property"}}{{/crossLink}}: JSON SpriteSheet definiteions. This
+	 *     <li>{{#crossLink "Types/SOUND:property"}}{{/crossLink}}: Audio file formats</li>
+	 *     <li>{{#crossLink "Types/SPRITESHEET:property"}}{{/crossLink}}: JSON SpriteSheet definitions. This
 	 *     will also load sub-images, and provide a {{#crossLink "SpriteSheet"}}{{/crossLink}} instance.</li>
-	 *     <li>{{#crossLink "AbstractLoader/SVG:property"}}{{/crossLink}}: SVG files</li>
-	 *     <li>{{#crossLink "AbstractLoader/TEXT:property"}}{{/crossLink}}: Text files - XHR only</li>
-	 *     <li>{{#crossLink "AbstractLoader/XML:property"}}{{/crossLink}}: XML data</li>
+	 *     <li>{{#crossLink "Types/SVG:property"}}{{/crossLink}}: SVG files</li>
+	 *     <li>{{#crossLink "Types/TEXT:property"}}{{/crossLink}}: Text files - XHR only</li>
+     *     <li>{{#crossLink "Types/VIDEO:property"}}{{/crossLink}}: Video objects</li>
+	 *     <li>{{#crossLink "Types/XML:property"}}{{/crossLink}}: XML data</li>
 	 * </ul>
 	 *
-	 * <em>Note: Loader types used to be defined on LoadQueue, but have been moved to AbstractLoader for better
-	 * portability of loader classes, which can be used individually now. The properties on LoadQueue still exist, but
-	 * are deprecated.</em>
+	 * <em>Note: Loader types used to be defined on LoadQueue, but have been moved to the Types class</em>
 	 *
 	 * <b>Handling Results</b><br />
 	 * When a file is finished downloading, a {{#crossLink "LoadQueue/fileload:event"}}{{/crossLink}} event is
@@ -202,6 +201,7 @@ this.createjs = this.createjs || {};
 	 *     <li>SpriteSheet: A {{#crossLink "SpriteSheet"}}{{/crossLink}} instance, containing loaded images.
 	 *     <li>SVG: An &lt;object /&gt; tag</li>
 	 *     <li>Text: Raw text</li>
+     *     <li>Video: A Video DOM node</li>
 	 *     <li>XML: An XML DOM node</li>
 	 * </ul>
 	 *
@@ -210,7 +210,7 @@ this.createjs = this.createjs || {};
 	 *          var type = item.type;
 	 *
 	 *          // Add any images to the page body.
-	 *          if (type == createjs.LoadQueue.IMAGE) {
+	 *          if (type == createjs.Types.IMAGE) {
 	 *              document.body.appendChild(event.result);
 	 *          }
 	 *      }
@@ -266,68 +266,46 @@ this.createjs = this.createjs || {};
 	 * @constructor
 	 * @extends AbstractLoader
 	 */
-	function LoadQueue(preferXHR, basePath, crossOrigin) {
+	function LoadQueue (preferXHR, basePath, crossOrigin) {
 		this.AbstractLoader_constructor();
-		this.init(preferXHR, basePath, crossOrigin);
-	}
-
-	var p = createjs.extend(LoadQueue, createjs.AbstractLoader);
-	var s = LoadQueue;
-
-	/**
-	 * <strong>REMOVED</strong>. Removed in favor of using `MySuperClass_constructor`.
-	 * See {{#crossLink "Utility Methods/extend"}}{{/crossLink}} and {{#crossLink "Utility Methods/promote"}}{{/crossLink}}
-	 * for details.
-	 *
-	 * There is an inheritance tutorial distributed with EaselJS in /tutorials/Inheritance.
-	 *
-	 * @method initialize
-	 * @protected
-	 * @deprecated
-	 */
-	// p.initialize = function() {}; // searchable for devs wondering where it is.
-
-
-	/**
-	 * An internal initialization method, which is used for initial set up, but also to reset the LoadQueue.
-	 * @method init
-	 * @param preferXHR
-	 * @param basePath
-	 * @param crossOrigin
-	 * @private
-	 */
-	p.init = function(preferXHR, basePath, crossOrigin) {
-
-		// public properties
-		/**
-		 * @property useXHR
-		 * @type {Boolean}
-		 * @readOnly
-		 * @default true
-		 * @deprecated Use preferXHR instead.
-		 */
-		this.useXHR = true;
 
 		/**
-		 * Try and use XMLHttpRequest (XHR) when possible. Note that LoadQueue will default to tag loading or XHR
-		 * loading depending on the requirements for a media type. For example, HTML audio can not be loaded with XHR,
-		 * and plain text can not be loaded with tags, so it will default the the correct type instead of using the
-		 * user-defined type.
-		 * @type {Boolean}
-		 * @default true
-		 * @since 0.6.0
+		 * An array of the plugins registered using {{#crossLink "LoadQueue/installPlugin"}}{{/crossLink}}.
+		 * @property _plugins
+		 * @type {Array}
+		 * @private
+		 * @since 0.6.1
 		 */
-		this.preferXHR = true; //TODO: Get/Set
-		this._preferXHR = true;
-		this.setPreferXHR(preferXHR);
+		this._plugins = [];
 
 		/**
-		 * Determines if the LoadQueue will stop processing the current queue when an error is encountered.
-		 * @property stopOnError
-		 * @type {Boolean}
-		 * @default false
+		 * An object hash of callbacks that are fired for each file type before the file is loaded, giving plugins the
+		 * ability to override properties of the load. Please see the {{#crossLink "LoadQueue/installPlugin"}}{{/crossLink}}
+		 * method for more information.
+		 * @property _typeCallbacks
+		 * @type {Object}
+		 * @private
 		 */
-		this.stopOnError = false;
+		this._typeCallbacks = {};
+
+		/**
+		 * An object hash of callbacks that are fired for each file extension before the file is loaded, giving plugins the
+		 * ability to override properties of the load. Please see the {{#crossLink "LoadQueue/installPlugin"}}{{/crossLink}}
+		 * method for more information.
+		 * @property _extensionCallbacks
+		 * @type {null}
+		 * @private
+		 */
+		this._extensionCallbacks = {};
+
+		/**
+		 * The next preload queue to process when this one is complete. If an error is thrown in the current queue, and
+		 * {{#crossLink "LoadQueue/stopOnError:property"}}{{/crossLink}} is `true`, the next queue will not be processed.
+		 * @property next
+		 * @type {LoadQueue}
+		 * @default null
+		 */
+		this.next = null;
 
 		/**
 		 * Ensure loaded scripts "complete" in the order they are specified. Loaded scripts are added to the document head
@@ -362,13 +340,120 @@ this.createjs = this.createjs || {};
 		this.maintainScriptOrder = true;
 
 		/**
-		 * The next preload queue to process when this one is complete. If an error is thrown in the current queue, and
-		 * {{#crossLink "LoadQueue/stopOnError:property"}}{{/crossLink}} is `true`, the next queue will not be processed.
-		 * @property next
-		 * @type {LoadQueue}
-		 * @default null
+		 * Determines if the LoadQueue will stop processing the current queue when an error is encountered.
+		 * @property stopOnError
+		 * @type {Boolean}
+		 * @default false
 		 */
-		this.next = null;
+		this.stopOnError = false;
+
+		/**
+		 * The number of maximum open connections that a loadQueue tries to maintain. Please see
+		 * {{#crossLink "LoadQueue/setMaxConnections"}}{{/crossLink}} for more information.
+		 * @property _maxConnections
+		 * @type {Number}
+		 * @default 1
+		 * @private
+		 */
+		this._maxConnections = 1;
+
+		/**
+		 * An internal list of all the default Loaders that are included with PreloadJS. Before an item is loaded, the
+		 * available loader list is iterated, in the order they are included, and as soon as a loader indicates it can
+		 * handle the content, it will be selected. The default loader, ({{#crossLink "TextLoader"}}{{/crossLink}} is
+		 * last in the list, so it will be used if no other match is found. Typically, loaders will match based on the
+		 * {{#crossLink "LoadItem/type"}}{{/crossLink}}, which is automatically determined using the file extension of
+		 * the {{#crossLink "LoadItem/src:property"}}{{/crossLink}}.
+		 *
+		 * Loaders can be removed from PreloadJS by simply not including them.
+		 *
+		 * Custom loaders installed using {{#crossLink "registerLoader"}}{{/crossLink}} will be prepended to this list
+		 * so that they are checked first.
+		 * @property _availableLoaders
+		 * @type {Array}
+		 * @private
+		 * @since 0.6.0
+		 */
+		this._availableLoaders = [
+            createjs.FontLoader,
+			createjs.ImageLoader,
+			createjs.JavaScriptLoader,
+			createjs.CSSLoader,
+			createjs.JSONLoader,
+			createjs.JSONPLoader,
+			createjs.SoundLoader,
+			createjs.ManifestLoader,
+			createjs.SpriteSheetLoader,
+			createjs.XMLLoader,
+			createjs.SVGLoader,
+			createjs.BinaryLoader,
+			createjs.VideoLoader,
+			createjs.TextLoader
+		];
+
+		/**
+		 * The number of built in loaders, so they can't be removed by {{#crossLink "unregisterLoader"}}{{/crossLink}.
+				 * @property _defaultLoaderLength
+		 * @type {Number}
+		 * @private
+		 * @since 0.6.0
+		 */
+		this._defaultLoaderLength = this._availableLoaders.length;
+
+		this.init(preferXHR, basePath, crossOrigin);
+	}
+
+	var p = createjs.extend(LoadQueue, createjs.AbstractLoader);
+	var s = LoadQueue;
+
+	// Remove these @deprecated properties after 1.0
+	try {
+		Object.defineProperties(s, {
+			POST: { get: createjs.deprecate(function() { return createjs.Methods.POST; }, "AbstractLoader.POST") },
+			GET: { get: createjs.deprecate(function() { return createjs.Methods.GET; }, "AbstractLoader.GET") },
+
+			BINARY: { get: createjs.deprecate(function() { return createjs.Types.BINARY; }, "AbstractLoader.BINARY") },
+			CSS: { get: createjs.deprecate(function() { return createjs.Types.CSS; }, "AbstractLoader.CSS") },
+			FONT: { get: createjs.deprecate(function() { return createjs.Types.FONT; }, "AbstractLoader.FONT") },
+			FONTCSS: { get: createjs.deprecate(function() { return createjs.Types.FONTCSS; }, "AbstractLoader.FONTCSS") },
+			IMAGE: { get: createjs.deprecate(function() { return createjs.Types.IMAGE; }, "AbstractLoader.IMAGE") },
+			JAVASCRIPT: { get: createjs.deprecate(function() { return createjs.Types.JAVASCRIPT; }, "AbstractLoader.JAVASCRIPT") },
+			JSON: { get: createjs.deprecate(function() { return createjs.Types.JSON; }, "AbstractLoader.JSON") },
+			JSONP: { get: createjs.deprecate(function() { return createjs.Types.JSONP; }, "AbstractLoader.JSONP") },
+			MANIFEST: { get: createjs.deprecate(function() { return createjs.Types.MANIFEST; }, "AbstractLoader.MANIFEST") },
+			SOUND: { get: createjs.deprecate(function() { return createjs.Types.SOUND; }, "AbstractLoader.SOUND") },
+			VIDEO: { get: createjs.deprecate(function() { return createjs.Types.VIDEO; }, "AbstractLoader.VIDEO") },
+			SPRITESHEET: { get: createjs.deprecate(function() { return createjs.Types.SPRITESHEET; }, "AbstractLoader.SPRITESHEET") },
+			SVG: { get: createjs.deprecate(function() { return createjs.Types.SVG; }, "AbstractLoader.SVG") },
+			TEXT: { get: createjs.deprecate(function() { return createjs.Types.TEXT; }, "AbstractLoader.TEXT") },
+			XML: { get: createjs.deprecate(function() { return createjs.Types.XML; }, "AbstractLoader.XML") }
+		});
+	} catch (e) {}
+
+	/**
+	 * An internal initialization method, which is used for initial set up, but also to reset the LoadQueue.
+	 * @method init
+	 * @param preferXHR
+	 * @param basePath
+	 * @param crossOrigin
+	 * @private
+	 */
+	p.init = function (preferXHR, basePath, crossOrigin) {
+
+		// public properties
+
+		/**
+		 * Try and use XMLHttpRequest (XHR) when possible. Note that LoadQueue will default to tag loading or XHR
+		 * loading depending on the requirements for a media type. For example, HTML audio can not be loaded with XHR,
+		 * and plain text can not be loaded with tags, so it will default the the correct type instead of using the
+		 * user-defined type.
+		 * @type {Boolean}
+		 * @default true
+		 * @since 0.6.0
+		 */
+		this.preferXHR = true; //TODO: Get/Set
+		this._preferXHR = true;
+		this.setPreferXHR(preferXHR);
 
 		// protected properties
 		/**
@@ -405,26 +490,6 @@ this.createjs = this.createjs || {};
 		this._crossOrigin = crossOrigin;
 
 		/**
-		 * An object hash of callbacks that are fired for each file type before the file is loaded, giving plugins the
-		 * ability to override properties of the load. Please see the {{#crossLink "LoadQueue/installPlugin"}}{{/crossLink}}
-		 * method for more information.
-		 * @property _typeCallbacks
-		 * @type {Object}
-		 * @private
-		 */
-		this._typeCallbacks = {};
-
-		/**
-		 * An object hash of callbacks that are fired for each file extension before the file is loaded, giving plugins the
-		 * ability to override properties of the load. Please see the {{#crossLink "LoadQueue/installPlugin"}}{{/crossLink}}
-		 * method for more information.
-		 * @property _extensionCallbacks
-		 * @type {null}
-		 * @private
-		 */
-		this._extensionCallbacks = {};
-
-		/**
 		 * Determines if the loadStart event was dispatched already. This event is only fired one time, when the first
 		 * file is requested.
 		 * @property _loadStartWasDispatched
@@ -433,16 +498,6 @@ this.createjs = this.createjs || {};
 		 * @private
 		 */
 		this._loadStartWasDispatched = false;
-
-		/**
-		 * The number of maximum open connections that a loadQueue tries to maintain. Please see
-		 * {{#crossLink "LoadQueue/setMaxConnections"}}{{/crossLink}} for more information.
-		 * @property _maxConnections
-		 * @type {Number}
-		 * @default 1
-		 * @private
-		 */
-		this._maxConnections = 1;
 
 		/**
 		 * Determines if there is currently a script loading. This helps ensure that only a single script loads at once when
@@ -560,195 +615,9 @@ this.createjs = this.createjs || {};
 		 */
 		this._lastProgress = NaN;
 
-		/**
-		 * An internal list of all the default Loaders that are included with PreloadJS. Before an item is loaded, the
-		 * available loader list is iterated, in the order they are included, and as soon as a loader indicates it can
-		 * handle the content, it will be selected. The default loader, ({{#crossLink "TextLoader"}}{{/crossLink}} is
-		 * last in the list, so it will be used if no other match is found. Typically, loaders will match based on the
-		 * {{#crossLink "LoadItem/type"}}{{/crossLink}}, which is automatically determined using the file extension of
-		 * the {{#crossLink "LoadItem/src:property"}}{{/crossLink}}.
-		 *
-		 * Loaders can be removed from PreloadJS by simply not including them.
-		 *
-		 * Custom loaders installed using {{#crossLink "registerLoader"}}{{/crossLink}} will be prepended to this list
-		 * so that they are checked first.
-		 * @property _availableLoaders
-		 * @type {Array}
-		 * @private
-		 * @since 0.6.0
-		 */
-		this._availableLoaders = [
-			createjs.ImageLoader,
-			createjs.JavaScriptLoader,
-			createjs.CSSLoader,
-			createjs.JSONLoader,
-			createjs.JSONPLoader,
-			createjs.SoundLoader,
-			createjs.ManifestLoader,
-			createjs.SpriteSheetLoader,
-			createjs.XMLLoader,
-			createjs.SVGLoader,
-			createjs.BinaryLoader,
-			createjs.VideoLoader,
-			createjs.TextLoader,
-		];
-
-		/**
-		 * The number of built in loaders, so they can't be removed by {{#crossLink "unregisterLoader"}}{{/crossLink}.
-		 * @property _defaultLoaderLength
-		 * @type {Number}
-		 * @private
-		 * @since 0.6.0
-		 */
-		this._defaultLoaderLength = this._availableLoaders.length;
 	};
 
-
 // static properties
-	/**
-	 * The time in milliseconds to assume a load has failed. An {{#crossLink "AbstractLoader/error:event"}}{{/crossLink}}
-	 * event is dispatched if the timeout is reached before any data is received.
-	 * @property loadTimeout
-	 * @type {Number}
-	 * @default 8000
-	 * @static
-	 * @since 0.4.1
-	 * @deprecated In favour of LoadItem.loadTimeout
-	 */
-	s.loadTimeout = 8000;
-
-	/**
-	 * The time in milliseconds to assume a load has failed.
-	 * @property LOAD_TIMEOUT
-	 * @type {Number}
-	 * @default 0
-	 * @deprecated in favor of the {{#crossLink "LoadQueue/loadTimeout:property"}}{{/crossLink}} property.
-	 */
-	s.LOAD_TIMEOUT = 0;
-
-// Preload Types
-	/**
-	 * @property BINARY
-	 * @type {String}
-	 * @default binary
-	 * @static
-	 * @deprecated Use the AbstractLoader {{#crossLink "AbstractLoader/BINARY:property"}}{{/crossLink}} instead.
-	 */
-	s.BINARY = createjs.AbstractLoader.BINARY;
-
-	/**
-	 * @property CSS
-	 * @type {String}
-	 * @default css
-	 * @static
-	 * @deprecated Use the AbstractLoader {{#crossLink "AbstractLoader/CSS:property"}}{{/crossLink}} instead.
-	 */
-	s.CSS = createjs.AbstractLoader.CSS;
-
-	/**
-	 * @property IMAGE
-	 * @type {String}
-	 * @default image
-	 * @static
-	 * @deprecated Use the AbstractLoader {{#crossLink "AbstractLoader/CSS:property"}}{{/crossLink}} instead.
-	 */
-	s.IMAGE = createjs.AbstractLoader.IMAGE;
-
-	/**
-	 * @property JAVASCRIPT
-	 * @type {String}
-	 * @default javascript
-	 * @static
-	 * @deprecated Use the AbstractLoader {{#crossLink "AbstractLoader/JAVASCRIPT:property"}}{{/crossLink}} instead.
-	 */
-	s.JAVASCRIPT = createjs.AbstractLoader.JAVASCRIPT;
-
-	/**
-	 * @property JSON
-	 * @type {String}
-	 * @default json
-	 * @static
-	 * @deprecated Use the AbstractLoader {{#crossLink "AbstractLoader/JSON:property"}}{{/crossLink}} instead.
-	 */
-	s.JSON = createjs.AbstractLoader.JSON;
-
-	/**
-	 * @property JSONP
-	 * @type {String}
-	 * @default jsonp
-	 * @static
-	 * @deprecated Use the AbstractLoader {{#crossLink "AbstractLoader/JSONP:property"}}{{/crossLink}} instead.
-	 */
-	s.JSONP = createjs.AbstractLoader.JSONP;
-
-	/**
-	 * @property MANIFEST
-	 * @type {String}
-	 * @default manifest
-	 * @static
-	 * @since 0.4.1
-	 * @deprecated Use the AbstractLoader {{#crossLink "AbstractLoader/MANIFEST:property"}}{{/crossLink}} instead.
-	 */
-	s.MANIFEST = createjs.AbstractLoader.MANIFEST;
-
-	/**
-	 * @property SOUND
-	 * @type {String}
-	 * @default sound
-	 * @static
-	 * @deprecated Use the AbstractLoader {{#crossLink "AbstractLoader/JAVASCRIPT:property"}}{{/crossLink}} instead.
-	 */
-	s.SOUND = createjs.AbstractLoader.SOUND;
-
-	/**
-	 * @property VIDEO
-	 * @type {String}
-	 * @default video
-	 * @static
-	 * @deprecated Use the AbstractLoader {{#crossLink "AbstractLoader/JAVASCRIPT:property"}}{{/crossLink}} instead.
-	 */
-	s.VIDEO = createjs.AbstractLoader.VIDEO;
-
-	/**
-	 * @property SVG
-	 * @type {String}
-	 * @default svg
-	 * @static
-	 * @deprecated Use the AbstractLoader {{#crossLink "AbstractLoader/SVG:property"}}{{/crossLink}} instead.
-	 */
-	s.SVG = createjs.AbstractLoader.SVG;
-
-	/**
-	 * @property TEXT
-	 * @type {String}
-	 * @default text
-	 * @static
-	 * @deprecated Use the AbstractLoader {{#crossLink "AbstractLoader/TEXT:property"}}{{/crossLink}} instead.
-	 */
-	s.TEXT = createjs.AbstractLoader.TEXT;
-
-	/**
-	 * @property XML
-	 * @type {String}
-	 * @default xml
-	 * @static
-	 * @deprecated Use the AbstractLoader {{#crossLink "AbstractLoader/XML:property"}}{{/crossLink}} instead.
-	 */
-	s.XML = createjs.AbstractLoader.XML;
-
-	/**
-	 * @property POST
-	 * @type {string}
-	 * @deprecated Use the AbstractLoader {{#crossLink "AbstractLoader/POST:property"}}{{/crossLink}} instead.
-	 */
-	s.POST = createjs.AbstractLoader.POST;
-
-	/**
-	 * @property GET
-	 * @type {string}
-	 * @deprecated Use the AbstractLoader {{#crossLink "AbstractLoader/GET:property"}}{{/crossLink}} instead.
-	 */
-	s.GET = createjs.AbstractLoader.GET;
 
 // events
 	/**
@@ -774,11 +643,18 @@ this.createjs = this.createjs || {};
 	/**
 	 * This event is fired when an individual file starts to load.
 	 * @event filestart
-	 * @param {Object} The object that dispatched the event.
+	 * @param {Object} target The object that dispatched the event.
 	 * @param {String} type The event type.
 	 * @param {Object} item The file item which was specified in the {{#crossLink "LoadQueue/loadFile"}}{{/crossLink}}
 	 * or {{#crossLink "LoadQueue/loadManifest"}}{{/crossLink}} call. If only a string path or tag was specified, the
 	 * object will contain that value as a property.
+	 */
+
+	/**
+	 * Although it extends {{#crossLink "AbstractLoader"}}{{/crossLink}}, the `initialize` event is never fired from
+	 * a LoadQueue instance.
+	 * @event initialize
+	 * @private
 	 */
 
 // public methods
@@ -787,7 +663,7 @@ this.createjs = this.createjs || {};
 	 * It is recommended that loaders extend {{#crossLink "AbstractLoader"}}{{/crossLink}}. Loaders can only be added
 	 * once, and will be prepended to the list of available loaders.
 	 * @method registerLoader
-	 * @param {Class} The AbstractLoader class to add.
+	 * @param {Function|AbstractLoader} loader The AbstractLoader class to add.
 	 * @since 0.6.0
 	 */
 	p.registerLoader = function (loader) {
@@ -801,29 +677,16 @@ this.createjs = this.createjs || {};
 	};
 
 	/**
-	 * Remove a custom loader added usig {{#crossLink "registerLoader"}}{{/crossLink}}. Only custom loaders can be
+	 * Remove a custom loader added using {{#crossLink "registerLoader"}}{{/crossLink}}. Only custom loaders can be
 	 * unregistered, the default loaders will always be available.
 	 * @method unregisterLoader
-	 * @param {Class} loader The AbstractLoader class to remove
+	 * @param {Function|AbstractLoader} loader The AbstractLoader class to remove
 	 */
 	p.unregisterLoader = function (loader) {
 		var idx = this._availableLoaders.indexOf(loader);
 		if (idx != -1 && idx < this._defaultLoaderLength - 1) {
 			this._availableLoaders.splice(idx, 1);
 		}
-	};
-
-	/**
-	 * @method setUseXHR
-	 * @param {Boolean} value The new useXHR value to set.
-	 * @return {Boolean} The new useXHR value. If XHR is not supported by the browser, this will return false, even if
-	 * the provided value argument was true.
-	 * @since 0.3.0
-	 * @deprecated use the {{#crossLink "preferXHR:property"}}{{/crossLink}} property, or the {{#crossLink "setUseXHR"}}{{/crossLink}}
-	 * method instead.
-	 */
-	p.setUseXHR = function (value) {
-		return this.setPreferXHR(value);
 	};
 
 	/**
@@ -834,7 +697,7 @@ this.createjs = this.createjs || {};
 	 * @returns {Boolean} The value of {{#crossLink "preferXHR"}}{{/crossLink}} that was successfully set.
 	 * @since 0.6.0
 	 */
-	p.setPreferXHR = function(value) {
+	p.setPreferXHR = function (value) {
 		// Determine if we can use XHR. XHR defaults to TRUE, but the browser may not support it.
 		//TODO: Should we be checking for the other XHR types? Might have to do a try/catch on the different types similar to createXHR.
 		this.preferXHR = (value != false && window.XMLHttpRequest != null);
@@ -874,7 +737,7 @@ this.createjs = this.createjs || {};
 	p.remove = function (idsOrUrls) {
 		var args = null;
 
-		if (idsOrUrls && !(idsOrUrls instanceof Array)) {
+		if (idsOrUrls && !Array.isArray(idsOrUrls)) {
 			args = [idsOrUrls];
 		} else if (idsOrUrls) {
 			args = idsOrUrls;
@@ -917,9 +780,7 @@ this.createjs = this.createjs || {};
 				}
 
 				if (r) {
-					delete this._loadItemsById[r.id];
-					delete this._loadItemsBySrc[r.src];
-					this._disposeItem(r);
+					this._disposeItem(this.getItem(item));
 				} else {
 					for (var i = this._currentLoads.length - 1; i >= 0; i--) {
 						var loadItem = this._currentLoads[i].getItem();
@@ -981,9 +842,12 @@ this.createjs = this.createjs || {};
 	 * @param {Function} plugin The plugin class to install.
 	 */
 	p.installPlugin = function (plugin) {
-		if (plugin == null) { return; }
+		if (plugin == null) {
+			return;
+		}
 
 		if (plugin.getPreloadHandlers != null) {
+			this._plugins.push(plugin);
 			var map = plugin.getPreloadHandlers();
 			map.scope = plugin;
 
@@ -1041,7 +905,7 @@ this.createjs = this.createjs || {};
 	 * value is true. If the queue is paused using {{#crossLink "LoadQueue/setPaused"}}{{/crossLink}}, and the value is
 	 * `true`, the queue will resume automatically.
 	 * @param {String} [basePath] A base path that will be prepended to each file. The basePath argument overrides the
-	 * path specified in the constructor. Note that if you load a manifest using a file of type {{#crossLink "AbstractLoader/MANIFEST:property"}}{{/crossLink}},
+	 * path specified in the constructor. Note that if you load a manifest using a file of type {{#crossLink "Types/MANIFEST:property"}}{{/crossLink}},
 	 * its files will <strong>NOT</strong> use the basePath parameter. <strong>The basePath parameter is deprecated.</strong>
 	 * This parameter will be removed in a future version. Please either use the `basePath` parameter in the LoadQueue
 	 * constructor, or a `path` property in a manifest definition.
@@ -1107,7 +971,7 @@ this.createjs = this.createjs || {};
 		var path = null;
 
 		// Array-based list of items
-		if (manifest instanceof Array) {
+		if (Array.isArray(manifest)) {
 			if (manifest.length == 0) {
 				var event = new createjs.ErrorEvent("PRELOAD_MANIFEST_EMPTY");
 				this._sendError(event);
@@ -1211,7 +1075,9 @@ this.createjs = this.createjs || {};
 	 */
 	p.getResult = function (value, rawResult) {
 		var item = this._loadItemsById[value] || this._loadItemsBySrc[value];
-		if (item == null) { return null; }
+		if (item == null) {
+			return null;
+		}
 		var id = item.id;
 		if (rawResult && this._loadedRawResults[id]) {
 			return this._loadedRawResults[id];
@@ -1228,17 +1094,19 @@ this.createjs = this.createjs || {};
 	 * result, and rawResult.
 	 * @since 0.6.0
 	 */
-	p.getItems = function(loaded) {
+	p.getItems = function (loaded) {
 		var arr = [];
-		for (var i= 0, l=this._loadQueueBackup.length; i<l; i++) {
-			var loader = this._loadQueueBackup[i]
-			var item = loader.getItem();
-			if (loaded === true && !loader.loaded) { continue; }
+		for (var n in this._loadItemsById) {
+			var item = this._loadItemsById[n];
+			var result = this.getResult(n);
+			if (loaded === true && result == null) {
+				continue;
+			}
 			arr.push({
 				item: item,
-				result: this.getResult(item.id),
-				rawResult: this.getResult(item.id, true)
-			 });
+				result: result,
+				rawResult: this.getResult(n, true)
+			});
 		}
 		return arr;
 	};
@@ -1296,9 +1164,14 @@ this.createjs = this.createjs || {};
 	 */
 	p._addItem = function (value, path, basePath) {
 		var item = this._createLoadItem(value, path, basePath); // basePath and manifest path are added to the src.
-		if (item == null) { return; } // Sometimes plugins or types should be skipped.
+		if (item == null) {
+			return;
+		} // Sometimes plugins or types should be skipped.
 		var loader = this._createLoader(item);
 		if (loader != null) {
+			if ("plugins" in loader) {
+				loader.plugins = this._plugins;
+			}
 			item._loader = loader;
 			this._loadQueue.push(loader);
 			this._loadQueueBackup.push(loader);
@@ -1308,10 +1181,10 @@ this.createjs = this.createjs || {};
 
 			// Only worry about script order when using XHR to load scripts. Tags are only loading one at a time.
 			if ((this.maintainScriptOrder
-				 && item.type == createjs.LoadQueue.JAVASCRIPT
-					//&& loader instanceof createjs.XHRLoader //NOTE: Have to track all JS files this way
-				)
-				|| item.maintainOrder === true) {
+					&& item.type == createjs.Types.JAVASCRIPT
+						//&& loader instanceof createjs.XHRLoader //NOTE: Have to track all JS files this way
+					)
+					|| item.maintainOrder === true) {
 				this._scriptOrder.push(item);
 				this._loadedScripts.push(null);
 			}
@@ -1337,24 +1210,20 @@ this.createjs = this.createjs || {};
 	 */
 	p._createLoadItem = function (value, path, basePath) {
 		var item = createjs.LoadItem.create(value);
-		if (item == null) { return null; }
-
-		// Determine Extension, etc.
-		var match = createjs.RequestUtils.parseURI(item.src);
-		if (match.extension) { item.ext = match.extension; }
-		if (item.type == null) {
-			item.type = createjs.RequestUtils.getTypeByExtension(item.ext);
+		if (item == null) {
+			return null;
 		}
 
-		// Inject path & basePath
 		var bp = ""; // Store the generated basePath
 		var useBasePath = basePath || this._basePath;
-		var autoId = item.src;
-		if (!match.absolute && !match.relative) {
+
+		if (item.src instanceof Object) {
+			if (!item.type) {
+				return null;
+			} // the the src is an object, type is required to pass off to plugin
 			if (path) {
 				bp = path;
-				var pathMatch = createjs.RequestUtils.parseURI(path);
-				autoId = path + autoId;
+				var pathMatch = createjs.URLUtils.parseURI(path);
 				// Also append basePath
 				if (useBasePath != null && !pathMatch.absolute && !pathMatch.relative) {
 					bp = useBasePath + bp;
@@ -1362,8 +1231,33 @@ this.createjs = this.createjs || {};
 			} else if (useBasePath != null) {
 				bp = useBasePath;
 			}
+		} else {
+			// Determine Extension, etc.
+			var match = createjs.URLUtils.parseURI(item.src);
+			if (match.extension) {
+				item.ext = match.extension;
+			}
+			if (item.type == null) {
+				item.type = createjs.RequestUtils.getTypeByExtension(item.ext);
+			}
+
+			// Inject path & basePath
+			var autoId = item.src;
+			if (!match.absolute && !match.relative) {
+				if (path) {
+					bp = path;
+					var pathMatch = createjs.URLUtils.parseURI(path);
+					autoId = path + autoId;
+					// Also append basePath
+					if (useBasePath != null && !pathMatch.absolute && !pathMatch.relative) {
+						bp = useBasePath + bp;
+					}
+				} else if (useBasePath != null) {
+					bp = useBasePath;
+				}
+			}
+			item.src = bp + item.src;
 		}
-		item.src = bp + item.src;
 		item.path = bp;
 
 		// If there's no id, set one now.
@@ -1385,13 +1279,13 @@ this.createjs = this.createjs || {};
 			} else if (result === true) {
 				// Do Nothing
 
-			// Result is a loader class:
+				// Result is a loader class:
 			} else if (result != null) {
 				item._loader = result;
 			}
 
 			// Update the extension in case the type changed:
-			match = createjs.RequestUtils.parseURI(item.src);
+			match = createjs.URLUtils.parseURI(item.src);
 			if (match.extension != null) {
 				item.ext = match.extension;
 			}
@@ -1400,10 +1294,6 @@ this.createjs = this.createjs || {};
 		// Store the item for lookup. This also helps clean-up later.
 		this._loadItemsById[item.id] = item;
 		this._loadItemsBySrc[item.src] = item;
-
-		if (item.loadTimeout == null) {
-			item.loadTimeout = s.loadTimeout;
-		}
 
 		if (item.crossOrigin == null) {
 			item.crossOrigin = this._crossOrigin;
@@ -1447,7 +1337,9 @@ this.createjs = this.createjs || {};
 	 * @private
 	 */
 	p._loadNext = function () {
-		if (this._paused) { return; }
+		if (this._paused) {
+			return;
+		}
 
 		// Only dispatch loadstart event when the first file is loaded.
 		if (!this._loadStartWasDispatched) {
@@ -1470,12 +1362,16 @@ this.createjs = this.createjs || {};
 
 		// Must iterate forwards to load in the right order.
 		for (var i = 0; i < this._loadQueue.length; i++) {
-			if (this._currentLoads.length >= this._maxConnections) { break; }
+			if (this._currentLoads.length >= this._maxConnections) {
+				break;
+			}
 			var loader = this._loadQueue[i];
 
 			// Determine if we should be only loading one tag-script at a time:
 			// Note: maintainOrder items don't do anything here because we can hold onto their loaded value
-			if (!this._canStartLoad(loader)) { continue; }
+			if (!this._canStartLoad(loader)) {
+				continue;
+			}
 			this._loadQueue.splice(i, 1);
 			i--;
 			this._loadItem(loader);
@@ -1503,11 +1399,11 @@ this.createjs = this.createjs || {};
 	 * The callback that is fired when a loader loads a file. This enables loaders like {{#crossLink "ManifestLoader"}}{{/crossLink}}
 	 * to maintain internal queues, but for this queue to dispatch the {{#crossLink "fileload:event"}}{{/crossLink}}
 	 * events.
-	 * @param {Event} The {{#crossLink "AbstractLoader/fileload:event"}}{{/crossLink}} event from the loader.
+	 * @param {Event} event The {{#crossLink "AbstractLoader/fileload:event"}}{{/crossLink}} event from the loader.
 	 * @private
 	 * @since 0.6.0
 	 */
-	p._handleFileLoad = function(event) {
+	p._handleFileLoad = function (event) {
 		event.target = null;
 		this.dispatchEvent(event);
 	};
@@ -1518,7 +1414,7 @@ this.createjs = this.createjs || {};
 	 * @param event
 	 * @private
 	 */
-	p._handleFileError = function(event) {
+	p._handleFileError = function (event) {
 		var newEvent = new createjs.ErrorEvent("FILE_LOAD_ERROR", null, event.item);
 		this._sendError(newEvent);
 	};
@@ -1544,7 +1440,10 @@ this.createjs = this.createjs || {};
 
 		if (!this.stopOnError) {
 			this._removeLoadItem(loader);
+			this._cleanLoadItem(loader);
 			this._loadNext();
+		} else {
+			this.setPaused(true);
 		}
 	};
 
@@ -1569,13 +1468,16 @@ this.createjs = this.createjs || {};
 
 		this._saveLoadedItems(loader);
 
-		// Clean up the load item
+		// Remove the load item
 		this._removeLoadItem(loader);
 
 		if (!this._finishOrderedItem(loader)) {
 			// The item was NOT managed, so process it now
 			this._processFinishedLoad(item, loader);
 		}
+
+		// Clean up the load item
+		this._cleanLoadItem(loader);
 	};
 
 	/**
@@ -1588,11 +1490,13 @@ this.createjs = this.createjs || {};
 	 * @protected
 	 * @since 0.6.0
 	 */
-	p._saveLoadedItems = function(loader) {
+	p._saveLoadedItems = function (loader) {
 		// TODO: Not sure how to handle this. Would be nice to expose the items.
 		// Loaders may load sub-items. This adds them to this queue
 		var list = loader.getLoadedItems();
-		if (list === null) { return; }
+		if (list === null) {
+			return;
+		}
 
 		for (var i = 0; i < list.length; i++) {
 			var item = list[i].item;
@@ -1605,13 +1509,14 @@ this.createjs = this.createjs || {};
 			this._loadedResults[item.id] = list[i].result;
 			this._loadedRawResults[item.id] = list[i].rawResult;
 		}
-	}
+	};
 
 	/**
 	 * Flag an item as finished. If the item's order is being managed, then ensure that it is allowed to finish, and if
 	 * so, trigger prior items to trigger as well.
 	 * @method _finishOrderedItem
 	 * @param {AbstractLoader} loader
+	 * @param {Boolean} loadFailed
 	 * @return {Boolean} If the item's order is being managed. This allows the caller to take an alternate
 	 * behaviour if it is.
 	 * @private
@@ -1619,8 +1524,8 @@ this.createjs = this.createjs || {};
 	p._finishOrderedItem = function (loader, loadFailed) {
 		var item = loader.getItem();
 
-		if ((this.maintainScriptOrder && item.type == createjs.LoadQueue.JAVASCRIPT)
-			|| item.maintainOrder) {
+		if ((this.maintainScriptOrder && item.type == createjs.Types.JAVASCRIPT)
+				|| item.maintainOrder) {
 
 			//TODO: Evaluate removal of the _currentlyLoadingScript
 			if (loader instanceof createjs.JavaScriptLoader) {
@@ -1628,7 +1533,9 @@ this.createjs = this.createjs || {};
 			}
 
 			var index = createjs.indexOf(this._scriptOrder, item);
-			if (index == -1) { return false; } // This loader no longer exists
+			if (index == -1) {
+				return false;
+			} // This loader no longer exists
 			this._loadedScripts[index] = (loadFailed === true) ? true : item;
 
 			this._checkScriptLoadOrder();
@@ -1652,13 +1559,17 @@ this.createjs = this.createjs || {};
 
 		for (var i = 0; i < l; i++) {
 			var item = this._loadedScripts[i];
-			if (item === null) { break; } // This is still loading. Do not process further.
-			if (item === true) { continue; } // This has completed, and been processed. Move on.
+			if (item === null) {
+				break;
+			} // This is still loading. Do not process further.
+			if (item === true) {
+				continue;
+			} // This has completed, and been processed. Move on.
 
 			var loadItem = this._loadedResults[item.id];
-			if (item.type == createjs.LoadQueue.JAVASCRIPT) {
-				// Append script tags to the head automatically. Tags do this in the loader, but XHR scripts have to maintain order.
-				(document.body || document.getElementsByTagName("body")[0]).appendChild(loadItem);
+			if (item.type == createjs.Types.JAVASCRIPT) {
+				// Append script tags to the head automatically.
+				createjs.DomUtils.appendToHead(loadItem);
 			}
 
 			var loader = item._loader;
@@ -1677,6 +1588,14 @@ this.createjs = this.createjs || {};
 	 */
 	p._processFinishedLoad = function (item, loader) {
 		this._numItemsLoaded++;
+
+		// Since LoadQueue needs maintain order, we can't append scripts in the loader.
+		// So we do it here instead. Or in _checkScriptLoadOrder();
+		if (!this.maintainScriptOrder && item.type == createjs.Types.JAVASCRIPT) {
+			var tag = loader.getTag();
+			createjs.DomUtils.appendToHead(tag);
+		}
+
 		this._updateProgress();
 		this._sendFileComplete(item, loader);
 		this._loadNext();
@@ -1692,16 +1611,24 @@ this.createjs = this.createjs || {};
 	 * @private
 	 */
 	p._canStartLoad = function (loader) {
-		if (!this.maintainScriptOrder || loader.preferXHR) { return true; }
+		if (!this.maintainScriptOrder || loader.preferXHR) {
+			return true;
+		}
 		var item = loader.getItem();
-		if (item.type != createjs.LoadQueue.JAVASCRIPT) { return true; }
-		if (this._currentlyLoadingScript) { return false; }
+		if (item.type != createjs.Types.JAVASCRIPT) {
+			return true;
+		}
+		if (this._currentlyLoadingScript) {
+			return false;
+		}
 
 		var index = this._scriptOrder.indexOf(item);
 		var i = 0;
 		while (i < index) {
 			var checkItem = this._loadedScripts[i];
-			if (checkItem == null) { return false; }
+			if (checkItem == null) {
+				return false;
+			}
 			i++;
 		}
 		this._currentlyLoadingScript = true;
@@ -1715,9 +1642,6 @@ this.createjs = this.createjs || {};
 	 * @private
 	 */
 	p._removeLoadItem = function (loader) {
-		var item = loader.getItem();
-		delete item._loader;
-
 		var l = this._currentLoads.length;
 		for (var i = 0; i < l; i++) {
 			if (this._currentLoads[i] == loader) {
@@ -1726,6 +1650,19 @@ this.createjs = this.createjs || {};
 			}
 		}
 	};
+
+	/**
+	 * Remove unneeded references from a loader.
+	 *
+	 * @param loader
+	 * @private
+	 */
+	p._cleanLoadItem = function(loader) {
+		var item = loader.getItem();
+		if (item) {
+			delete item._loader;
+		}
+	}
 
 	/**
 	 * An item has dispatched progress. Propagate that progress, and update the LoadQueue's overall progress.
@@ -1794,11 +1731,12 @@ this.createjs = this.createjs || {};
 	 * @protected
 	 */
 	p._sendFileProgress = function (item, progress) {
-		if (this._isCanceled()) {
-			this._cleanUp();
+		if (this._isCanceled() || this._paused) {
 			return;
 		}
-		if (!this.hasEventListener("fileprogress")) { return; }
+		if (!this.hasEventListener("fileprogress")) {
+			return;
+		}
 
 		//LM: Rework ProgressEvent to support this?
 		var event = new createjs.Event("fileprogress");
@@ -1819,7 +1757,9 @@ this.createjs = this.createjs || {};
 	 * @protected
 	 */
 	p._sendFileComplete = function (item, loader) {
-		if (this._isCanceled()) { return; }
+		if (this._isCanceled() || this._paused) {
+			return;
+		}
 
 		var event = new createjs.Event("fileload");
 		event.loader = loader;

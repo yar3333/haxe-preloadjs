@@ -39,10 +39,11 @@ this.createjs = this.createjs || {};
 	 * @class ImageLoader
 	 * @param {LoadItem|Object} loadItem
 	 * @param {Boolean} preferXHR
+	 * @extends AbstractLoader
 	 * @constructor
 	 */
 	function ImageLoader (loadItem, preferXHR) {
-		this.AbstractLoader_constructor(loadItem, preferXHR, createjs.AbstractLoader.IMAGE);
+		this.AbstractLoader_constructor(loadItem, preferXHR, createjs.Types.IMAGE);
 
 		// public properties
 		this.resultFormatter = this._formatResult;
@@ -51,18 +52,18 @@ this.createjs = this.createjs || {};
 		this._tagSrcAttribute = "src";
 
 		// Check if the preload item is already a tag.
-		if (createjs.RequestUtils.isImageTag(loadItem)) {
+		if (createjs.DomUtils.isImageTag(loadItem)) {
 			this._tag = loadItem;
-		} else if (createjs.RequestUtils.isImageTag(loadItem.src)) {
+		} else if (createjs.DomUtils.isImageTag(loadItem.src)) {
 			this._tag = loadItem.src;
-		} else if (createjs.RequestUtils.isImageTag(loadItem.tag)) {
+		} else if (createjs.DomUtils.isImageTag(loadItem.tag)) {
 			this._tag = loadItem.tag;
 		}
 
 		if (this._tag != null) {
 			this._preferXHR = false;
 		} else {
-			this._tag = document.createElement("img");
+			this._tag = createjs.Elements.img();
 		}
 
 		this.on("initialize", this._updateXHR, this);
@@ -74,14 +75,14 @@ this.createjs = this.createjs || {};
 	// static methods
 	/**
 	 * Determines if the loader can load a specific item. This loader can only load items that are of type
-	 * {{#crossLink "AbstractLoader/IMAGE:property"}}{{/crossLink}}.
+	 * {{#crossLink "Types/IMAGE:property"}}{{/crossLink}}.
 	 * @method canLoadItem
 	 * @param {LoadItem|Object} item The LoadItem that a LoadQueue is trying to load.
 	 * @returns {Boolean} Whether the loader can load the item.
 	 * @static
 	 */
 	s.canLoadItem = function (item) {
-		return item.type == createjs.AbstractLoader.IMAGE;
+		return item.type == createjs.Types.IMAGE;
 	};
 
 	// public methods
@@ -93,7 +94,7 @@ this.createjs = this.createjs || {};
 
 		var crossOrigin = this._item.crossOrigin;
 		if (crossOrigin == true) { crossOrigin = "Anonymous"; }
-		if (crossOrigin != null && !createjs.RequestUtils.isLocal(this._item.src)) {
+		if (crossOrigin != null && !createjs.URLUtils.isLocal(this._item)) {
 			this._tag.crossOrigin = crossOrigin;
 		}
 
@@ -102,7 +103,7 @@ this.createjs = this.createjs || {};
 
 	// protected methods
 	/**
-	 * Before the item loads, set its mimetype and responseType.
+	 * Before the item loads, set its mimeType and responseType.
 	 * @property _updateXHR
 	 * @param {Event} event
 	 * @private
@@ -124,31 +125,60 @@ this.createjs = this.createjs || {};
 	 * @private
 	 */
 	p._formatResult = function (loader) {
-		var _this = this;
-		return function (done) {
-			var tag = _this._tag;
-			var URL = window.URL || window.webkitURL;
+		return this._formatImage;
+	};
 
-			if (!_this._preferXHR) {
-				//document.body.removeChild(tag);
-			} else if (URL) {
-				var objURL = URL.createObjectURL(loader.getResult(true));
-				tag.src = objURL;
-				tag.onload = function () {
-					URL.revokeObjectURL(_this.src);
-				}
-			} else {
-				tag.src = loader.getItem().src;
-			}
+	/**
+	 * The asynchronous image formatter function. This is required because images have
+	 * a short delay before they are ready.
+	 * @method _formatImage
+	 * @param {Function} successCallback The method to call when the result has finished formatting
+	 * @param {Function} errorCallback The method to call if an error occurs during formatting
+	 * @private
+	 */
+	p._formatImage = function (successCallback, errorCallback) {
+		var tag = this._tag;
+		var URL = window.URL || window.webkitURL;
 
-			if (tag.complete) {
-				done(tag);
-			} else {
-				tag.onload = function () {
-					done(this);
-				}
-			}
-		};
+		if (!this._preferXHR) {
+
+			//document.body.removeChild(tag);
+		} else if (URL) {
+			var objURL = URL.createObjectURL(this.getResult(true));
+			tag.src = objURL;
+
+			tag.addEventListener("load", this._cleanUpURL, false);
+			tag.addEventListener("error", this._cleanUpURL, false);
+		} else {
+			tag.src = this._item.src;
+		}
+
+		if (tag.complete) {
+			successCallback(tag);
+		} else {
+            tag.onload = createjs.proxy(function() {
+                successCallback(this._tag);
+                tag.onload = tag.onerror = null;
+            }, this);
+
+            tag.onerror = createjs.proxy(function(event) {
+                errorCallback(new createjs.ErrorEvent('IMAGE_FORMAT', null, event));
+                tag.onload = tag.onerror = null;
+            }, this);
+		}
+	};
+
+	/**
+	 * Clean up the ObjectURL, the tag is done with it. Note that this function is run
+	 * as an event listener without a proxy/closure, as it doesn't require it - so do not
+	 * include any functionality that requires scope without changing it.
+	 * @method _cleanUpURL
+	 * @param event
+	 * @private
+	 */
+	p._cleanUpURL = function (event) {
+		var URL = window.URL || window.webkitURL;
+		URL.revokeObjectURL(event.target.src);
 	};
 
 	createjs.ImageLoader = createjs.promote(ImageLoader, "AbstractLoader");

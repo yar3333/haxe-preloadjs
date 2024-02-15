@@ -43,10 +43,11 @@ this.createjs = this.createjs || {};
 	 * @class SVGLoader
 	 * @param {LoadItem|Object} loadItem
 	 * @param {Boolean} preferXHR
+	 * @extends AbstractLoader
 	 * @constructor
 	 */
 	function SVGLoader(loadItem, preferXHR) {
-		this.AbstractLoader_constructor(loadItem, preferXHR, createjs.AbstractLoader.SVG);
+		this.AbstractLoader_constructor(loadItem, preferXHR, createjs.Types.SVG);
 
 		// public properties
 		this.resultFormatter = this._formatResult;
@@ -55,13 +56,11 @@ this.createjs = this.createjs || {};
 		this._tagSrcAttribute = "data";
 
 		if (preferXHR) {
-			this.setTag(document.createElement("svg"));
+			this.setTag(createjs.Elements.svg());
 		} else {
-			this.setTag(document.createElement("object"));
+			this.setTag(createjs.Elements.object());
 			this.getTag().type = "image/svg+xml";
 		}
-
-		this.getTag().style.visibility = "hidden";
 	};
 
 	var p = createjs.extend(SVGLoader, createjs.AbstractLoader);
@@ -70,14 +69,14 @@ this.createjs = this.createjs || {};
 	// static methods
 	/**
 	 * Determines if the loader can load a specific item. This loader can only load items that are of type
-	 * {{#crossLink "AbstractLoader/SVG:property"}}{{/crossLink}}
+	 * {{#crossLink "Types/SVG:property"}}{{/crossLink}}
 	 * @method canLoadItem
 	 * @param {LoadItem|Object} item The LoadItem that a LoadQueue is trying to load.
 	 * @returns {Boolean} Whether the loader can load the item.
 	 * @static
 	 */
 	s.canLoadItem = function (item) {
-		return item.type == createjs.AbstractLoader.SVG;
+		return item.type == createjs.Types.SVG;
 	};
 
 	// protected methods
@@ -90,7 +89,7 @@ this.createjs = this.createjs || {};
 	 */
 	p._formatResult = function (loader) {
 		// mime should be image/svg+xml, but Opera requires text/xml
-		var xml = createjs.DataUtils.parseXML(loader.getResult(true), "text/xml");
+		var xml = createjs.DataUtils.parseXML(loader.getResult(true));
 		var tag = loader.getTag();
 
 		if (!this._preferXHR && document.body.contains(tag)) {
@@ -98,13 +97,17 @@ this.createjs = this.createjs || {};
 		}
 
 		if (xml.documentElement != null) {
-			tag.appendChild(xml.documentElement);
-			tag.style.visibility = "visible";
+			var element = xml.documentElement;
+			// Support loading an SVG from a different domain in ID
+			if (document.importNode) {
+				element = document.importNode(element, true);
+			}
+			tag.appendChild(element);
 			return tag;
 		} else { // For browsers that don't support SVG, just give them the XML. (IE 9-8)
 			return xml;
 		}
-	}
+	};
 
 	createjs.SVGLoader = createjs.promote(SVGLoader, "AbstractLoader");
 
