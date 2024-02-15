@@ -1,5 +1,5 @@
 OPTIONS+= -src out/data.json
-OPTIONS+= --remove-path-prefix native/src
+OPTIONS+= --remove-path-prefix native
 OPTIONS+= --native-package createjs
 OPTIONS+= --apply-native-package
 
@@ -18,6 +18,6 @@ OPTIONS+= --specify-type LoadQueue.registerLoader.The-AbstractLoader
 OPTIONS+= --specify-type LoadQueue.unregisterLoader.loader-AbstractLoader
 
 convert:
-	yuidoc -p -o out native/src
+	yuidoc -p -o out native
 	haxelib run yuidoc2haxe $(OPTIONS) library
 	rm -r out
